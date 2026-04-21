@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PRANA-MESH Sentinel</string>
+    <string name="start_scanning">START</string>
+    <string name="stop_scanning">STOP</string>
+    <string name="status_ready">Ready - Press Start to Begin Scanning</string>
+    <string name="status_scanning">SCANNING ACTIVE\nListening for BLE distress signals...</string>
+</resources>

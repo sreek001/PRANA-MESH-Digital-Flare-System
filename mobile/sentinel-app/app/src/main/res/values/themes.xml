@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SentinelApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#00FF88</item>
+        <item name="colorPrimaryVariant">#00CC6A</item>
+        <item name="android:statusBarColor">#0F0F23</item>
+    </style>
+</resources>

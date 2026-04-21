@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  database:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 2528
+      MYSQL_DATABASE: prana_mesh
+    ports:
+      - "3306:3306"
+    volumes:
+      - prana_mesh_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://root:2528@database:3306/prana_mesh
+    depends_on:
+      - database
+
+  dashboard:
+    build: ./dashboard
+    restart: always
+    ports:
+      - "8501:8501"
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+
+volumes:
+  prana_mesh_data:

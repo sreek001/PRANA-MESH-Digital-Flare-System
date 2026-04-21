@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prana-Mesh - Victim Panel</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 { margin-top: 0; color: #ff5252; }
+        .status-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:active { transform: scale(0.95); }
+        .btn-safe { background-color: #4CAF50; color: white; }
+        .btn-help { background-color: #FF9800; color: white; }
+        .btn-medical { background-color: #f44336; color: white; }
+        .btn-critical { background-color: #b71c1c; color: white; }
+        .log-box {
+            background-color: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: left;
+            font-family: monospace;
+            height: 100px;
+            overflow-y: auto;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        #backendUrl {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🚨 Prana-Mesh SOS</h1>
+        <p>Broadcast your status directly to the Command Center.</p>
+
+        <input type="text" id="backendUrl" value="http://localhost:8000" placeholder="Backend URL">
+
+        <div class="status-btns">
+            <button class="btn-safe" onclick="sendSignal(0)">SAFE</button>
+            <button class="btn-help" onclick="sendSignal(1)">HELP</button>
+            <button class="btn-medical" onclick="sendSignal(2)">MEDICAL</button>
+            <button class="btn-critical" onclick="sendSignal(3)">CRITICAL</button>
+        </div>
+
+        <div class="log-box" id="logBox">
+            > System Ready...<br>
+        </div>
+    </div>
+
+    <script>
+        const deviceID = "WEB-" + Math.floor(Math.random() * 100000);
+        function log(msg) {
+            const lb = document.getElementById("logBox");
+            lb.innerHTML += `> ${msg}<br>`;
+            lb.scrollTop = lb.scrollHeight;
+        }
+
+        function sendSignal(status) {
+            log(`Acquiring GPS location...`);
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => postData(position.coords.latitude, position.coords.longitude, status),
+                    (error) => {
+                        log(`GPS Error: ${error.message}. Using fallback coords.`);
+                        const lat = 10.8505 + (Math.random() * 0.01);
+                        const lon = 76.2711 + (Math.random() * 0.01);
+                        postData(lat, lon, status);
+                    }
+                );
+            } else {
+                log("Geolocation not supported by this browser.");
+            }
+        }
+
+        async function postData(lat, lon, status) {
+            const url = document.getElementById("backendUrl").value + "/report";
+            const payload = {
+                device_id: deviceID,
+                lat: lat,
+                lon: lon,
+                status: status,
+                battery: 100,
+                sentinel_id: "WEB_PANEL"
+            };
+
+            try {
+                log(`Sending to ${url}...`);
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    log("✅ Signal successfully transmitted!");
+                } else {
+                    log(`❌ Error: ${response.status}`);
+                }
+            } catch (error) {
+                log(`❌ Network Error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

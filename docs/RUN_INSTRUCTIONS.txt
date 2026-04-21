@@ -1,0 +1,261 @@
+PRANA-MESH SETUP GUIDE
+======================
+
+Digital Flare System - Emergency Mesh Communication
+
+================================================================================
+PART 1: BACKEND & DASHBOARD SETUP (COMPUTER)
+================================================================================
+
+1. Install Dependencies
+------------------------
+
+Backend:
+  cd backend
+  pip install -r requirements.txt
+
+Dashboard:
+  cd dashboard
+  pip install -r requirements.txt
+
+---
+
+2. Setup MySQL Database
+-----------------------
+
+Create the database in MySQL:
+  mysql -u root -p
+  CREATE DATABASE prana_mesh;
+
+Update database credentials if needed in:
+  backend/database.py
+
+Default connection string:
+  mysql+pymysql://root:2528@localhost:3306/prana_mesh
+
+---
+
+3. Run Backend Server
+---------------------
+
+  cd backend
+  uvicorn main:app --host 0.0.0.0 --port 8000
+
+The API will be available at:
+  http://localhost:8000
+  http://localhost:8000/docs (Swagger UI)
+  http://localhost:8000/health (Health check)
+
+IMPORTANT: Note your computer's local IP address (needed for mobile apps):
+  - Windows: Run "ipconfig" in Command Prompt
+  - Look for "IPv4 Address" (e.g., 192.168.1.100)
+
+---
+
+4. Run Dashboard
+----------------
+
+  cd dashboard
+  streamlit run dashboard.py
+
+The dashboard will open at:
+  http://localhost:8501
+
+================================================================================
+PART 2: MOBILE APPS - BUILDING APKs FOR TESTING
+================================================================================
+
+OPTION A: Build APKs via Android Studio (Recommended)
+------------------------------------------------------
+
+5. Open Projects in Android Studio
+-----------------------------------
+
+GHOST APP:
+  - File > Open > Select "mobile/ghost-app" folder
+  - Wait for Gradle sync to complete
+
+SENTINEL APP:
+  - File > Open > Select "mobile/sentinel-app" folder
+  - Wait for Gradle sync to complete
+
+6. Update Backend URL in Sentinel App
+--------------------------------------
+
+Before building sentinel-app, update the backend URL:
+
+  File: mobile/sentinel-app/app/src/main/java/com/pranamesh/sentinel/ApiClient.kt
+
+  Change line 24:
+    private const val BASE_URL = "http://YOUR_IP_HERE:8000"
+
+  Replace YOUR_IP_HERE with your computer's local IP address.
+  Example: "http://192.168.1.100:8000"
+
+7. Build Debug APKs
+-------------------
+
+In Android Studio for each app:
+
+  Build > Build Bundle(s) / APK(s) > Build APK(s)
+
+The APK files will be saved to:
+  - ghost-app/app/build/outputs/apk/debug/app-debug.apk
+  - sentinel-app/app/build/outputs/apk/debug/app-debug.apk
+
+8. Install APKs on Android Devices
+-----------------------------------
+
+Method 1: USB Cable
+  - Enable "Developer Options" and "USB Debugging" on the Android device
+  - Connect device to computer via USB
+  - Run: adb install app-debug.apk
+
+Method 2: Direct Transfer
+  - Copy APK files to the Android device (via USB, email, cloud storage, etc.)
+  - On the device, open the APK file to install
+  - You may need to enable "Install from Unknown Sources" in Settings
+
+Method 3: Android Studio Direct Install
+  - With device connected, click "Run" (green play button) in Android Studio
+  - Select the connected device
+
+---
+
+OPTION B: Build APKs via Command Line
+--------------------------------------
+
+If you have Android SDK command-line tools installed:
+
+GHOST APP:
+  cd mobile/ghost-app
+  gradlew assembleDebug
+
+SENTINEL APP:
+  cd mobile/sentinel-app
+  gradlew assembleDebug
+
+APKs will be in: app/build/outputs/apk/debug/
+
+================================================================================
+PART 3: TESTING ON REAL ANDROID DEVICES
+================================================================================
+
+9. Device Requirements
+----------------------
+
+- Android 8.0 (API 26) or higher
+- Physical device required (BLE does NOT work on emulators)
+- Bluetooth hardware required
+
+10. Install and Configure Apps
+------------------------------
+
+GHOST APP (Distress Device):
+  - Install ghost-app APK on Device A
+  - When first launched, grant ALL permissions:
+    * Location (always allowed)
+    * Bluetooth permissions
+    * Notifications (Android 13+)
+  - Press the PANIC button to activate distress mode
+
+SENTINEL APP (Relay Device):
+  - Install sentinel-app APK on Device B
+  - Update BASE_URL in ApiClient.kt BEFORE building (see Step 6)
+  - Grant ALL permissions when prompted
+  - Press START to begin BLE scanning
+
+11. Run the Demo
+----------------
+
+Step 1: Start the backend (uvicorn) on your computer
+Step 2: Start the dashboard (streamlit) on your computer
+Step 3: Install and run Ghost App on Device A
+Step 4: Install and run Sentinel App on Device B
+Step 5: Press Panic Button on Ghost App (Device A)
+Step 6: Press Start on Sentinel App (Device B)
+Step 7: Watch the dashboard update in real-time at http://localhost:8501
+
+Expected flow:
+  Ghost App broadcasts BLE signal -> Sentinel App detects it ->
+  Sentinel sends to backend -> Dashboard displays on map
+
+================================================================================
+PART 4: IMPORTANT NOTES
+================================================================================
+
+BLE Requirements:
+  - BLE works ONLY on real Android devices (not emulators)
+  - Both devices must have Bluetooth turned ON
+  - Location permission must be set to "ALWAYS ALLOWED"
+  - Devices must be within BLE range (~10-30 meters)
+  - Sentinel device needs internet/WiFi connection to reach backend
+  - Ghost device does NOT need internet (offline-first design)
+
+Network Requirements:
+  - Computer running backend must be on the same WiFi network as Sentinel device
+  - Firewall may need to allow incoming connections on port 8000
+  - If using mobile data on Sentinel device, use your computer's public IP
+    (requires port forwarding on your router)
+
+Status Types:
+  0 -> SAFE
+  1 -> HELP
+  2 -> MEDICAL
+  3 -> CRITICAL
+
+Signal Expiry:
+  - Signals older than 10 minutes (600 seconds) are marked as inactive
+  - Dashboard shows only active signals by default
+
+Battery Optimization:
+  - Ghost App reduces BLE advertising frequency when battery < 2%
+  - Location is cached at 5% battery and not refreshed at 1%
+
+================================================================================
+PART 5: TROUBLESHOOTLING
+================================================================================
+
+Backend won't start:
+  - Check MySQL is running: mysql -u root -p
+  - Verify database credentials in backend/database.py
+  - Ensure port 8000 is not in use
+
+Dashboard shows no signals:
+  - Verify backend is running at http://localhost:8000/health
+  - Check BASE_URL in sentinel app ApiClient.kt matches your IP
+  - Ensure devices are within BLE range
+
+BLE not working:
+  - Must use real Android devices (not emulators)
+  - Check Bluetooth is enabled in Settings
+  - Verify location permissions are granted (Settings > Apps > [App] > Permissions)
+  - Android 12+ requires BLUETOOTH_SCAN and BLUETOOTH_CONNECT permissions
+
+Sentinel can't reach backend:
+  - Verify computer's IP address hasn't changed
+  - Check firewall allows incoming connections on port 8000
+  - Test from Sentinel device browser: http://YOUR_IP:8000/health
+  - Should return: {"status":"ok",...}
+
+APK installation fails:
+  - Enable "Install from Unknown Sources" in Settings
+  - On Android 8+: Settings > Apps > Special Access > Install unknown apps
+  - Allow the app you're using to install APKs (Chrome, Files, etc.)
+
+================================================================================
+PART 6: QUICK START SUMMARY
+================================================================================
+
+1. Start MySQL and create database 'prana_mesh'
+2. cd backend && uvicorn main:app --host 0.0.0.0 --port 8000
+3. cd dashboard && streamlit run dashboard.py
+4. Open mobile apps in Android Studio
+5. Update sentinel-app/ApiClient.kt with your computer's IP
+6. Build APKs: Build > Build APK(s)
+7. Install APKs on two Android devices
+8. Press PANIC on Ghost device
+9. Press START on Sentinel device
+10. Watch signals appear on dashboard at http://localhost:8501
+
+================================================================================
