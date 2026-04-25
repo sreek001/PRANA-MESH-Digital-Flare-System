@@ -10,10 +10,9 @@ import time
 
 st.set_page_config(page_title="PRANA-MESH Command Center", page_icon="🚨", layout="wide")
 
-# Backend URL - change to match your backend server
-# For local testing: http://localhost:8000
-# For network access: http://YOUR_IP:8000
-BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
+# Backend URL - Cloud Run deployment
+# For local testing: change to http://localhost:8000
+BACKEND_URL = "https://prana-mesh-backend-8152165795.us-central1.run.app"
 
 st.title("🚨 PRANA-MESH Command Center")
 st.markdown("**Digital Flare System** — Emergency Mesh Communication Dashboard")

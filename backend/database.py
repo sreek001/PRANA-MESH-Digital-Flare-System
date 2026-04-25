@@ -2,13 +2,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+# Use SQLite for Cloud Run (serverless compatible)
+# For production with MySQL, set DATABASE_URL env var
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./prana_mesh.db")
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "mysql+pymysql://root:2528@localhost:3306/prana_mesh")
-
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

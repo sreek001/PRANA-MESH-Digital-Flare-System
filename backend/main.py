@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import engine, get_db
@@ -19,6 +20,15 @@ else:
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="PRANA-MESH Command Center", version="1.0.0")
+
+# Allow CORS for Streamlit Cloud
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For demo; restrict in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class SignalReport(BaseModel):
