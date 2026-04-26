@@ -5,8 +5,6 @@ from folium.plugins import HeatMap, MarkerCluster
 import requests
 import pandas as pd
 from datetime import datetime
-import os
-import time
 
 st.set_page_config(page_title="PRANA-MESH Command Center", page_icon="🚨", layout="wide")
 
@@ -18,45 +16,7 @@ st.title("🚨 PRANA-MESH Command Center")
 st.markdown("**Digital Flare System** — Emergency Mesh Communication Dashboard")
 st.markdown("---")
 
-# Quick Demo Mode - Manual signal entry
-st.sidebar.header("🔧 Demo Controls")
-with st.sidebar.form("manual_signal"):
-    st.markdown("**Add Test Signal Manually**")
-    demo_device = st.text_input("Device ID", "DEMO-001")
-    demo_lat = st.number_input("Latitude", value=19.0760, format="%.6f")
-    demo_lon = st.number_input("Longitude", value=72.8777, format="%.6f")
-    demo_status = st.selectbox("Status", ["SAFE", "HELP", "MEDICAL", "CRITICAL"])
-    demo_battery = st.slider("Battery %", 0, 100, 75)
-    demo_submit = st.form_submit_button("➕ Add Signal")
-
-    if demo_submit:
-        status_map = {"SAFE": 0, "HELP": 1, "MEDICAL": 2, "CRITICAL": 3}
-        payload = {
-            "device_id": demo_device,
-            "lat": demo_lat,
-            "lon": demo_lon,
-            "status": status_map[demo_status],
-            "battery": demo_battery,
-            "timestamp": int(time.time())
-        }
-        try:
-            resp = requests.post(f"{BACKEND_URL}/report", json=payload, timeout=5)
-            if resp.status_code == 200:
-                st.sidebar.success("✅ Signal added!")
-                time.sleep(0.5)
-                st.rerun()
-            else:
-                st.sidebar.error(f"Error: {resp.status_code}")
-        except Exception as e:
-            st.sidebar.error(f"Failed: {str(e)}")
-
-# Manual refresh button
-col_refresh1, col_refresh2 = st.columns([1, 4])
-with col_refresh1:
-    if st.button("🔄 Refresh"):
-        st.rerun()
-
-# Fetch signals with better error handling
+# Fetch signals with error handling
 try:
     response = requests.get(f"{BACKEND_URL}/signals", timeout=5)
     if response.status_code == 200:
@@ -65,41 +25,23 @@ try:
         st.error(f"⚠️ Backend returned status {response.status_code}")
         signals = []
 except requests.exceptions.ConnectionError:
-    st.error("⚠️ Cannot connect to backend. Ensure FastAPI is running.")
-    st.info(f"Backend URL: `{BACKEND_URL}`")
+    st.error("⚠️ Cannot connect to backend.")
     signals = []
 except Exception as e:
     st.error(f"⚠️ Error: {str(e)}")
     signals = []
 
-# Metrics - show ALL signals (active flag is just for 10 min window display)
+# Metrics
+col1, col2, col3, col4 = st.columns(4)
 total_signals = len(signals)
 active_signals = [s for s in signals if s["is_active"]]
 medical_signals = [s for s in signals if s["status"] == 2]
 critical_signals = [s for s in signals if s["status"] == 3]
-help_signals = [s for s in signals if s["status"] == 1]
-safe_signals = [s for s in signals if s["status"] == 0]
 
-# Use session state to prevent flashing
-if 'last_signal_count' not in st.session_state:
-    st.session_state.last_signal_count = 0
-
-col1, col2, col3, col4 = st.columns(4)
 col1.metric("📡 Total Signals", total_signals)
 col2.metric("✅ Active Now", len(active_signals))
 col3.metric("🏥 Medical", len(medical_signals))
 col4.metric("🔴 Critical", len(critical_signals))
-
-# Additional info
-if total_signals > 0:
-    st.markdown("### Signal Summary")
-    summary_cols = st.columns(4)
-    summary_cols[0].markdown(f"⚠️ **Help**: {len(help_signals)}")
-    summary_cols[1].markdown(f"✅ **Safe**: {len(safe_signals)}")
-    summary_cols[2].markdown(f"🔴 **Critical**: {len(critical_signals)}")
-    summary_cols[3].markdown(f"🏥 **Medical**: {len(medical_signals)}")
-
-st.markdown("---")
 
 st.markdown("---")
 
