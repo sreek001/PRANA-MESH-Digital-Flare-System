@@ -22,12 +22,8 @@ interface PranaMeshApi {
 
 object RetrofitClient {
     private const val TAG = "RetrofitClient"
-    // ============================================================
-    // IMPORTANT: Update this URL to match your backend server
-    // For local testing: Use your PC's IP address (run 'ipconfig')
-    // For production: Use your deployed backend URL
-    // ============================================================
-    private const val BASE_URL = "http://YOUR_PC_IP:8000"  // <-- CHANGE THIS
+    // Backend URL - Cloud Run deployment
+    private const val BASE_URL = "https://prana-mesh-backend-8152165795.us-central1.run.app"
 
     val api: PranaMeshApi by lazy {
         Log.d(TAG, "Initializing Retrofit with base URL: $BASE_URL")
