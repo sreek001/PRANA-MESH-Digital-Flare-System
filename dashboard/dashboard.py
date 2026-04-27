@@ -9,7 +9,7 @@ from datetime import datetime
 # Page config
 st.set_page_config(
     page_title="PRANA-MESH Command Center",
-    page_icon="🚨",
+    page_icon="📡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -150,7 +150,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Header with animated effect
-st.markdown('<h1>🚨 PRANA-MESH Command Center</h1>', unsafe_allow_html=True)
+st.markdown('<h1>PRANA-MESH Command Center</h1>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Digital Flare System — Emergency Mesh Communication Dashboard</p>', unsafe_allow_html=True)
 
 # Fetch signals
@@ -181,7 +181,7 @@ with col1:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-value" style="color: #48dbfb;">{total_signals}</div>
-        <div class="metric-label">📡 Total Signals</div>
+        <div class="metric-label">Total Signals</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -189,7 +189,7 @@ with col2:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-value" style="color: #00c853;">{len(active_signals)}</div>
-        <div class="metric-label">✅ Active Now</div>
+        <div class="metric-label">Active Now</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -197,7 +197,7 @@ with col3:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-value" style="color: #feca57;">{len(medical_signals)}</div>
-        <div class="metric-label">🏥 Medical</div>
+        <div class="metric-label">Medical</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -205,7 +205,7 @@ with col4:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-value" style="color: #ff6b6b;">{len(critical_signals)}</div>
-        <div class="metric-label">🔴 Critical</div>
+        <div class="metric-label">Critical</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -215,10 +215,10 @@ st.markdown("<br>", unsafe_allow_html=True)
 if total_signals > 0:
     st.markdown("""
     <div style="text-align: center; margin: 20px 0;">
-        <span class="status-badge status-safe">✅ Safe: {safe}</span>
-        <span class="status-badge status-help">⚠️ Help: {help}</span>
-        <span class="status-badge status-medical">🏥 Medical: {medical}</span>
-        <span class="status-badge status-critical">🔴 Critical: {critical}</span>
+        <span class="status-badge status-safe">Safe: {safe}</span>
+        <span class="status-badge status-help">Help: {help}</span>
+        <span class="status-badge status-medical">Medical: {medical}</span>
+        <span class="status-badge status-critical">Critical: {critical}</span>
     </div>
     """.format(safe=len(safe_signals), help=len(help_signals), medical=len(medical_signals), critical=len(critical_signals)), unsafe_allow_html=True)
 
@@ -226,38 +226,36 @@ st.markdown("---")
 
 # Main content tabs
 if signals:
-    tab1, tab2, tab3, tab4 = st.tabs(["🗺️ Live Map", "🔥 Heatmap", "📍 Locations", "📋 Details"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Live Map", "Heatmap", "Locations", "Details"])
 
     # Calculate center
     center_lat = sum(s["latitude"] for s in signals) / len(signals)
     center_lon = sum(s["longitude"] for s in signals) / len(signals)
 
     with tab1:
-        st.markdown("### 🌍 Real-time Distress Signal Map")
+        st.markdown("### Real-time Distress Signal Map")
 
         m = folium.Map(location=[center_lat, center_lon], zoom_start=14, tiles="CartoDB dark_matter")
         marker_cluster = MarkerCluster().add_to(m)
 
         status_colors = {0: "green", 1: "orange", 2: "red", 3: "darkred"}
-        status_emojis = {0: "✅", 1: "⚠️", 2: "🏥", 3: "🔴"}
 
         for s in signals:
             color = status_colors.get(s["status"], "blue")
-            emoji = status_emojis.get(s["status"], "📍")
             last_seen = datetime.fromtimestamp(s["last_seen"]).strftime("%Y-%m-%d %H:%M:%S")
             status_labels = {0: "SAFE", 1: "HELP", 2: "MEDICAL", 3: "CRITICAL"}
 
             popup_html = f"""
             <div style="min-width: 220px; font-family: 'Segoe UI', Arial;">
                 <div style="background: linear-gradient(90deg, {color}, transparent); padding: 10px; margin: -10px -10px 10px -10px; border-radius: 8px 8px 0 0;">
-                    <strong style="color: white; font-size: 1.1em;">{emoji} {status_labels.get(s['status'], 'UNKNOWN')}</strong>
+                    <strong style="color: white; font-size: 1.1em;">{status_labels.get(s['status'], 'UNKNOWN')}</strong>
                 </div>
                 <div style="padding: 5px;">
-                    <b>📱 Device:</b> {s['device_id']}<br>
-                    <b>📍 Location:</b> {s['latitude']:.6f}, {s['longitude']:.6f}<br>
-                    <b>🔋 Battery:</b> {s['battery']}%<br>
-                    <b>⏰ Last Seen:</b> {last_seen}<br>
-                    <b>📡 Status:</b> {'✅ Active' if s['is_active'] else '❌ Inactive'}<br>
+                    <b>Device:</b> {s['device_id']}<br>
+                    <b>Location:</b> {s['latitude']:.6f}, {s['longitude']:.6f}<br>
+                    <b>Battery:</b> {s['battery']}%<br>
+                    <b>Last Seen:</b> {last_seen}<br>
+                    <b>Status:</b> {'Active' if s['is_active'] else 'Inactive'}<br>
                 </div>
             </div>
             """
@@ -271,7 +269,7 @@ if signals:
         st_folium(m, width=1400, height=650)
 
     with tab2:
-        st.markdown("### 🔥 Emergency Signal Density Heatmap")
+        st.markdown("### Emergency Signal Density Heatmap")
 
         medical_coords = [[s["latitude"], s["longitude"]] for s in signals if s["status"] == 2]
         critical_coords = [[s["latitude"], s["longitude"]] for s in signals if s["status"] == 3]
@@ -287,10 +285,10 @@ if signals:
 
             st_folium(heat_map, width=1400, height=600)
         else:
-            st.markdown('<div class="warning-box">📍 No MEDICAL or CRITICAL signals to display on heatmap.</div>', unsafe_allow_html=True)
+            st.markdown('<div class="warning-box">No MEDICAL or CRITICAL signals to display on heatmap.</div>', unsafe_allow_html=True)
 
     with tab3:
-        st.markdown("### 📍 Detected Signal Locations")
+        st.markdown("### Detected Signal Locations")
 
         location_data = []
         for s in signals:
@@ -302,14 +300,14 @@ if signals:
                 "Longitude": f"{s['longitude']:.6f}",
                 "Battery": f"{s['battery']}%",
                 "Last Seen": datetime.fromtimestamp(s["last_seen"]).strftime("%Y-%m-%d %H:%M:%S"),
-                "Active": "✅ Yes" if s["is_active"] else "❌ No"
+                "Active": "Yes" if s["is_active"] else "No"
             })
 
         location_df = pd.DataFrame(location_data)
         st.dataframe(location_df, use_container_width=True, hide_index=True)
 
     with tab4:
-        st.markdown("### 📋 All Signal Details")
+        st.markdown("### Signal Details")
 
         df = pd.DataFrame(signals)
         status_labels = {0: "SAFE", 1: "HELP", 2: "MEDICAL", 3: "CRITICAL"}
@@ -327,7 +325,7 @@ else:
         <h2 style="color: #a0a0a0;">No distress signals received yet</h2>
         <p style="color: #666;">Signals will appear here automatically when detected by Sentinel nodes.</p>
         <div class="success-box" style="display: inline-block; margin-top: 20px;">
-            <strong>✨ System Status:</strong> Backend is connected and ready to receive signals
+            <strong>System Status:</strong> Backend is connected and ready to receive signals
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -336,7 +334,7 @@ else:
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #666; padding: 20px;">
-    <p>🚨 <strong>PRANA-MESH</strong> — Saving lives through decentralized emergency communication</p>
-    <p style="font-size: 0.9rem; color: #444;">Built with Google Cloud Run • FastAPI • Streamlit</p>
+    <p><strong>PRANA-MESH</strong> — Saving lives through decentralized emergency communication</p>
+    <p style="font-size: 0.9rem; color: #444;">Built with Google Cloud Run | FastAPI | Streamlit</p>
 </div>
 """, unsafe_allow_html=True)
